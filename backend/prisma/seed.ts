@@ -23,98 +23,97 @@ async function main() {
   await prisma.project.deleteMany();
   await prisma.user.deleteMany();
 
-  // Create users
-  const adminPassword = await bcrypt.hash("Admin@123", 12);
-  const memberPassword = await bcrypt.hash("Member@123", 12);
+  const defaultPassword = await bcrypt.hash("Password@123", 12);
 
-  const admin = await prisma.user.create({
+  // Core Team Profiles
+  const yash = await prisma.user.create({
     data: {
-      name: "Alex Rivera",
-      email: "admin@demo.com",
-      password: adminPassword,
+      name: "Yash Bansal",
+      email: "yash@demo.com",
+      password: defaultPassword,
       role: Role.ADMIN,
       avatarColor: AVATAR_COLORS[0],
     },
   });
 
-  const member1 = await prisma.user.create({
+  const yogesh = await prisma.user.create({
     data: {
-      name: "Jordan Kim",
-      email: "member@demo.com",
-      password: memberPassword,
+      name: "Yogesh Bansal",
+      email: "yogesh@demo.com",
+      password: defaultPassword,
       role: Role.MEMBER,
       avatarColor: AVATAR_COLORS[1],
     },
   });
 
-  const member2 = await prisma.user.create({
+  const sniper = await prisma.user.create({
     data: {
-      name: "Sam Chen",
-      email: "sam@demo.com",
-      password: await bcrypt.hash("Member@123", 12),
-      role: Role.MEMBER,
-      avatarColor: AVATAR_COLORS[2],
-    },
-  });
-
-  const member3 = await prisma.user.create({
-    data: {
-      name: "Priya Nair",
-      email: "priya@demo.com",
-      password: await bcrypt.hash("Member@123", 12),
+      name: "Sniper (K9 Unit)",
+      email: "sniper@demo.com",
+      password: defaultPassword,
       role: Role.MEMBER,
       avatarColor: AVATAR_COLORS[3],
     },
   });
 
+  const guest = await prisma.user.create({
+    data: {
+      name: "Guest Reviewer",
+      email: "guest@demo.com",
+      password: defaultPassword,
+      role: Role.MEMBER,
+      avatarColor: AVATAR_COLORS[5],
+    },
+  });
+
   console.log("✅ Users created");
 
-  // Create projects
-  const project1 = await prisma.project.create({
+  // Engineering Projects
+  const shardFS = await prisma.project.create({
     data: {
-      name: "Platform Redesign",
+      name: "ShardFS Architecture",
       description:
-        "Complete overhaul of the user-facing platform with new design system.",
-      color: "#6ee7b7",
-      createdById: admin.id,
-      members: {
-        create: [
-          { userId: admin.id, role: "ADMIN" },
-          { userId: member1.id, role: "MEMBER" },
-          { userId: member2.id, role: "MEMBER" },
-        ],
-      },
-    },
-  });
-
-  const project2 = await prisma.project.create({
-    data: {
-      name: "API Gateway v2",
-      description:
-        "Rebuild the API gateway with rate limiting, caching and better observability.",
+        "Backend architecture for distributed file system. Sharding and replication logic.",
       color: "#818cf8",
-      createdById: admin.id,
+      createdById: yash.id,
       members: {
         create: [
-          { userId: admin.id, role: "ADMIN" },
-          { userId: member2.id, role: "MEMBER" },
-          { userId: member3.id, role: "MEMBER" },
+          { userId: yash.id, role: "ADMIN" },
+          { userId: yogesh.id, role: "MEMBER" },
+          { userId: guest.id, role: "MEMBER" },
         ],
       },
     },
   });
 
-  const project3 = await prisma.project.create({
+  const meloSynthia = await prisma.project.create({
     data: {
-      name: "Mobile App Launch",
-      description: "iOS and Android app launch preparation and QA.",
-      color: "#f87171",
-      createdById: admin.id,
+      name: "MeloSynthiaAI",
+      description:
+        "AI-powered music NFT platform. Award-winning Web3 integration.",
+      color: "#6ee7b7",
+      createdById: yash.id,
       members: {
         create: [
-          { userId: admin.id, role: "ADMIN" },
-          { userId: member1.id, role: "MEMBER" },
-          { userId: member3.id, role: "MEMBER" },
+          { userId: yash.id, role: "ADMIN" },
+          { userId: guest.id, role: "MEMBER" },
+        ],
+      },
+    },
+  });
+
+  const pdfSaaS = await prisma.project.create({
+    data: {
+      name: "AI PDF Summarizer",
+      description:
+        "Next.js, LangChain, and PostgreSQL SaaS platform deployments.",
+      color: "#f87171",
+      createdById: yash.id,
+      members: {
+        create: [
+          { userId: yash.id, role: "ADMIN" },
+          { userId: sniper.id, role: "MEMBER" },
+          { userId: guest.id, role: "MEMBER" },
         ],
       },
     },
@@ -128,182 +127,111 @@ async function main() {
   const futureDate = (daysAhead: number) =>
     new Date(now.getTime() + daysAhead * 86400000);
 
-  // Tasks for project1 - Platform Redesign
+  // Tasks for ShardFS
   await prisma.task.createMany({
     data: [
       {
-        title: "Audit existing design tokens",
+        title: "Design sharding algorithm",
         description:
-          "Document all current colors, spacing, and typography used across the platform.",
-        status: TaskStatus.DONE,
-        priority: Priority.HIGH,
-        dueDate: pastDate(10),
-        projectId: project1.id,
-        assignedToId: member1.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Build component library",
-        description:
-          "Create Storybook with all base UI components following new design system.",
-        status: TaskStatus.IN_PROGRESS,
-        priority: Priority.HIGH,
-        dueDate: futureDate(5),
-        projectId: project1.id,
-        assignedToId: member2.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Migrate dashboard to new components",
-        description:
-          "Replace all legacy components in dashboard with new design system components.",
-        status: TaskStatus.TODO,
-        priority: Priority.MEDIUM,
-        dueDate: futureDate(14),
-        projectId: project1.id,
-        assignedToId: member1.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Accessibility audit",
-        description: "WCAG 2.1 AA compliance check across all new components.",
-        status: TaskStatus.TODO,
-        priority: Priority.MEDIUM,
-        dueDate: futureDate(20),
-        projectId: project1.id,
-        assignedToId: null,
-        createdById: admin.id,
-      },
-      {
-        title: "Dark mode implementation",
-        description:
-          "CSS variable based dark mode with system preference detection.",
-        status: TaskStatus.IN_PROGRESS,
-        priority: Priority.LOW,
-        dueDate: pastDate(2), // OVERDUE
-        projectId: project1.id,
-        assignedToId: member2.id,
-        createdById: admin.id,
-      },
-    ],
-  });
-
-  // Tasks for project2 - API Gateway v2
-  await prisma.task.createMany({
-    data: [
-      {
-        title: "Design rate limiting strategy",
-        description:
-          "Define per-endpoint rate limits, sliding window algorithm.",
-        status: TaskStatus.DONE,
-        priority: Priority.HIGH,
-        dueDate: pastDate(15),
-        projectId: project2.id,
-        assignedToId: member2.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Implement Redis caching layer",
-        description:
-          "Add Redis for response caching with configurable TTL per route.",
-        status: TaskStatus.IN_PROGRESS,
-        priority: Priority.HIGH,
-        dueDate: pastDate(3), // OVERDUE
-        projectId: project2.id,
-        assignedToId: member3.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Set up distributed tracing",
-        description:
-          "OpenTelemetry integration with Jaeger for request tracing.",
-        status: TaskStatus.TODO,
-        priority: Priority.MEDIUM,
-        dueDate: futureDate(7),
-        projectId: project2.id,
-        assignedToId: member2.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Load testing suite",
-        description: "k6 scripts for load testing all gateway endpoints.",
-        status: TaskStatus.TODO,
-        priority: Priority.LOW,
-        dueDate: futureDate(21),
-        projectId: project2.id,
-        assignedToId: null,
-        createdById: admin.id,
-      },
-    ],
-  });
-
-  // Tasks for project3 - Mobile App Launch
-  await prisma.task.createMany({
-    data: [
-      {
-        title: "App Store submission checklist",
-        description:
-          "Complete all required assets and metadata for App Store review.",
+          "Implement core sharding logic. Exclude consistent hashing for the initial phase.",
         status: TaskStatus.DONE,
         priority: Priority.HIGH,
         dueDate: pastDate(5),
-        projectId: project3.id,
-        assignedToId: member1.id,
-        createdById: admin.id,
+        projectId: shardFS.id,
+        assignedToId: yash.id,
+        createdById: yash.id,
       },
       {
-        title: "Push notification infrastructure",
-        description:
-          "FCM and APNs setup for cross-platform push notifications.",
-        status: TaskStatus.DONE,
-        priority: Priority.HIGH,
-        dueDate: pastDate(8),
-        projectId: project3.id,
-        assignedToId: member3.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Beta testing with 50 users",
-        description:
-          "TestFlight and Play Console beta program with internal users.",
+        title: "Setup MongoDB Atlas",
+        description: "Configure replica sets and cluster monitoring.",
         status: TaskStatus.IN_PROGRESS,
-        priority: Priority.MEDIUM,
-        dueDate: futureDate(3),
-        projectId: project3.id,
-        assignedToId: member1.id,
-        createdById: admin.id,
-      },
-      {
-        title: "Crash reporting integration",
-        description: "Sentry SDK integration for both iOS and Android builds.",
-        status: TaskStatus.TODO,
         priority: Priority.HIGH,
         dueDate: pastDate(1), // OVERDUE
-        projectId: project3.id,
-        assignedToId: member3.id,
-        createdById: admin.id,
+        projectId: shardFS.id,
+        assignedToId: yogesh.id,
+        createdById: yash.id,
       },
       {
-        title: "Marketing landing page",
-        description:
-          "App store optimized landing page with screenshots and feature highlights.",
+        title: "Kafka event integration",
+        description: "Establish pub/sub message brokers for system events.",
         status: TaskStatus.TODO,
+        priority: Priority.MEDIUM,
+        dueDate: futureDate(7),
+        projectId: shardFS.id,
+        assignedToId: guest.id,
+        createdById: yash.id,
+      },
+    ],
+  });
+
+  // Tasks for MeloSynthiaAI
+  await prisma.task.createMany({
+    data: [
+      {
+        title: "Integrate SynthID watermarks",
+        description:
+          "Ensure all AI-generated tracks include traceable audio watermarks.",
+        status: TaskStatus.DONE,
+        priority: Priority.HIGH,
+        dueDate: pastDate(10),
+        projectId: meloSynthia.id,
+        assignedToId: yash.id,
+        createdById: yash.id,
+      },
+      {
+        title: "Smart Contract deployment",
+        description: "Deploy finalized NFT minting contracts to mainnet.",
+        status: TaskStatus.IN_PROGRESS,
+        priority: Priority.HIGH,
+        dueDate: futureDate(2),
+        projectId: meloSynthia.id,
+        assignedToId: guest.id,
+        createdById: yash.id,
+      },
+    ],
+  });
+
+  // Tasks for PDF SaaS
+  await prisma.task.createMany({
+    data: [
+      {
+        title: "LangChain Vector Embeddings",
+        description: "Setup Postgres pgvector for document querying.",
+        status: TaskStatus.DONE,
+        priority: Priority.HIGH,
+        dueDate: pastDate(15),
+        projectId: pdfSaaS.id,
+        assignedToId: yash.id,
+        createdById: yash.id,
+      },
+      {
+        title: "Procure Pedigree inventory",
+        description: "Order Chicken & Veg wet food and joint supplements.",
+        status: TaskStatus.TODO,
+        priority: Priority.HIGH,
+        dueDate: futureDate(1),
+        projectId: pdfSaaS.id,
+        assignedToId: sniper.id,
+        createdById: yash.id,
+      },
+      {
+        title: "Vercel Pipeline Config",
+        description: "Update CI/CD production deployment settings.",
+        status: TaskStatus.IN_PROGRESS,
         priority: Priority.LOW,
-        dueDate: futureDate(10),
-        projectId: project3.id,
-        assignedToId: null,
-        createdById: admin.id,
+        dueDate: pastDate(3), // OVERDUE
+        projectId: pdfSaaS.id,
+        assignedToId: guest.id,
+        createdById: yash.id,
       },
     ],
   });
 
   console.log("✅ Tasks created");
-  console.log("\n🎉 Seed complete!");
-  console.log("\n📋 Demo accounts:");
-  console.log("  Admin:  admin@demo.com  / Admin@123");
-  console.log("  Member: member@demo.com / Member@123");
-  console.log("  Sam:    sam@demo.com    / Member@123");
-  console.log("  Priya:  priya@demo.com  / Member@123");
+  console.log("\n🎉 Portfolio Seed Complete!");
+  console.log("\n📋 Login Credentials:");
+  console.log("  Admin: yash@demo.com   / Password@123");
+  console.log("  Team:  guest@demo.com  / Password@123");
 }
 
 main()
